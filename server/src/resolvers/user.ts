@@ -1,13 +1,19 @@
-import { Arg, Mutation, Resolver } from "type-graphql";
+import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import { RegisterInput } from "../types/RegisterInput";
 import { User } from "../entities/User";
 import argon2 from "argon2";
 import { UserMutationResponse } from "../types/UserMutationResponse";
 import { LoginInput } from "../types/LoginInput";
-import { createToken } from "../utils/auth";
+import { createToken, sendRefreshToken } from "../utils/auth";
+import { Context } from "../types/Context";
 
 @Resolver()
 export class UserResolver {
+  @Query((_return) => [User])
+  async users(): Promise<User[]> {
+    return await User.find();
+  }
+
   @Mutation((_return) => UserMutationResponse)
   async register(
     @Arg("registerInput")
@@ -44,7 +50,8 @@ export class UserResolver {
 
   @Mutation((_return) => UserMutationResponse)
   async login(
-    @Arg("loginInput") { username, password }: LoginInput
+    @Arg("loginInput") { username, password }: LoginInput,
+    @Ctx() {res}: Context
   ): Promise<UserMutationResponse> {
     const existingUser = await User.findOne({ where: [{ username }] });
 
@@ -66,12 +73,14 @@ export class UserResolver {
       };
     }
 
+    sendRefreshToken(res, existingUser);
+
     return {
       code: 200,
       success: true,
       message: "Logged in successfully",
       user: existingUser,
-      accessToken: createToken(existingUser),
+      accessToken: createToken("accessToken", existingUser),
     };
   }
 }

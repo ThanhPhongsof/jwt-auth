@@ -12,9 +12,10 @@ import {
 } from "apollo-server-core";
 import { GreetingResolver } from "./resolvers/greeting";
 import { UserResolver } from "./resolvers/user";
-// import cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import { Context } from "./types/Context";
+import refreshTokenRouter from "./routes/refreshTokenRouter";
 
 const main = async () => {
   await createConnection({
@@ -30,9 +31,9 @@ const main = async () => {
   const app = express();
 
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-  // app.use(cookieParser());
+  app.use(cookieParser());
 
-  // app.use("/refresh_token", refreshTokenRouter);
+  app.use("/refresh_token", refreshTokenRouter);
 
   const httpServer = createServer(app);
 

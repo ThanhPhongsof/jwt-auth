@@ -14,7 +14,9 @@ const type_graphql_1 = require("type-graphql");
 const apollo_server_core_1 = require("apollo-server-core");
 const greeting_1 = require("./resolvers/greeting");
 const user_1 = require("./resolvers/user");
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
+const refreshTokenRouter_1 = __importDefault(require("./routes/refreshTokenRouter"));
 const main = async () => {
     await (0, typeorm_1.createConnection)({
         type: "postgres",
@@ -27,6 +29,8 @@ const main = async () => {
     });
     const app = (0, express_1.default)();
     app.use((0, cors_1.default)({ origin: "http://localhost:3000", credentials: true }));
+    app.use((0, cookie_parser_1.default)());
+    app.use("/refresh_token", refreshTokenRouter_1.default);
     const httpServer = (0, http_1.createServer)(app);
     const apolloServer = new apollo_server_express_1.ApolloServer({
         schema: await (0, type_graphql_1.buildSchema)({
